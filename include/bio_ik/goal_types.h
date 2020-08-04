@@ -371,6 +371,31 @@ public:
     }
 };
 
+class WeightedJointPositionsGoal : public Goal
+{
+    std::vector<double> joint_goals_;
+    std::vector<double> joint_weights_; 
+public:
+    WeightedJointPositionsGoal(double weight = 1.0, bool secondary = true)
+    {
+        weight_ = weight;
+        secondary_ = secondary;
+
+    }
+    void setJointGoalPositions(std::vector<double> joint_goals){joint_goals_ = joint_goals;}
+    void setJointWeights(std::vector<double> joint_weights){joint_weights_ = joint_weights;}
+    virtual double evaluate(const GoalContext& context) const
+    {
+        double sum = 0.0;
+        for(size_t i = 0; i < context.getProblemVariableCount(); i++)
+        {
+            double d = (context.getProblemVariablePosition(i) - joint_goals_[i])*joint_weights_[i];
+            sum += d * d;
+        }
+        return sum;
+    }
+};
+
 class CenterJointsGoal : public Goal
 {
 public:
