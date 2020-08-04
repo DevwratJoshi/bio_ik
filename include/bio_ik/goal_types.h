@@ -410,6 +410,30 @@ public:
       double d = context.getProblemVariablePosition(i) - context.getProblemVariableInitialGuess(i);
       sum += d * d;
     }
+    ROS_WARN_STREAM("Regularization goal cost is: " << sum );
+    return sum;
+  }
+};
+
+class WeightedRegularizationGoal : public Goal
+{
+public:
+  std::vector<double> joint_weights_;
+  WeightedRegularizationGoal(double weight = 1.0, std::vector<double> joint_weights={1.0,1.0,1.0,1.0,1.0,1.0})
+  {
+    weight_ = weight;
+    joint_weights_ = joint_weights;
+  }
+
+  virtual double evaluate(const GoalContext &context) const
+  {
+    double sum = 0.0;
+    for (size_t i = 0; i < context.getProblemVariableCount(); i++)
+    {
+      double d = (context.getProblemVariablePosition(i) - context.getProblemVariableInitialGuess(i))*joint_weights_[i];
+      sum += d * d;
+    }
+    //ROS_WARN_STREAM("WeightedRegularization goal cost is: " << sum );
     return sum;
   }
 };
@@ -434,6 +458,8 @@ public:
         return sum;
     }
 };
+
+
 
 class JointVariableGoal : public Goal
 {
@@ -467,7 +493,53 @@ public:
         return d * d;
     }
 };
+class JointFunctionCostGoal : public Goal
+{
+    std::vector<std::string> variable_names;
+    std::function<void(std::vector<double>&, double&)> function;
 
+public:
+    JointFunctionCostGoal() {}
+    JointFunctionCostGoal(const std::vector<std::string>& variable_names, const std::function<void(std::vector<double>&, double&)>& function, double weight = 1.0, bool secondary = false)
+        : variable_names(variable_names)
+        , function(function)
+    {
+        weight_ = weight;
+        secondary_ = secondary;
+    }
+    void setJointVariableNames(const std::vector<std::string>& n) { variable_names = n; }
+    void setJointVariableFunction(const std::function<void(std::vector<double>&, double&)>& f) { function = f; }
+    
+    virtual void describe(GoalContext& context) const
+    {
+        Goal::describe(context);
+        for(auto& variable_name : variable_names)
+            context.addVariable(variable_name);
+    }
+    virtual double evaluate(const GoalContext& context) const
+    {
+        auto& temp_vector = context.getTempVector();
+
+        double cost = 0;
+        temp_vector.resize(variable_names.size());
+        std::vector<double> prob_var_pos, initial_guess;
+        prob_var_pos.resize(variable_names.size());
+        initial_guess.resize(variable_names.size());
+        for(size_t i = 0; i < variable_names.size(); i++)
+        {
+            initial_guess[i] = context.getProblemVariableInitialGuess(i);
+            prob_var_pos[i] =  context.getProblemVariablePosition(i);// active_variable_position if goal_variable_indices[i] > 0, else initial_guess
+            temp_vector[i] = context.getVariablePosition(i); //context.getProblemVariablePosition(i) for Regularization goal
+        }   
+        function(temp_vector, cost);
+        // ROS_INFO_STREAM("getVariablePosition        = " << temp_vector[0] << " " << temp_vector[1] << " " << temp_vector[2] << " " << temp_vector[3] << " " << temp_vector[4] << " " << temp_vector[5]);
+        // ROS_INFO_STREAM("getProblemVariablePosition = " << prob_var_pos[0] << " " << prob_var_pos[1] << " " << prob_var_pos[2] << " " << prob_var_pos[3] << " " << prob_var_pos[4] << " " << prob_var_pos[5]);
+        // ROS_INFO_STREAM("InitialGuess              = " << initial_guess[0] << " " << initial_guess[1] << " " << initial_guess[2] << " " << initial_guess[3] << " " << initial_guess[4] << " " << initial_guess[5]);
+        
+        // ROS_WARN_STREAM("Function cost goal cost is: " << cost << "\n");
+        return cost;
+    }
+};
 class JointFunctionGoal : public Goal
 {
     std::vector<std::string> variable_names;
