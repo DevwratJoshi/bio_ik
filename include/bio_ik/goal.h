@@ -108,6 +108,7 @@ public:
     }
     virtual ~Goal() {}
     bool isSecondary() const { return secondary_; }
+    void setSecondary(bool s) { secondary_ = s; }
     double getWeight() const { return weight_; }
     void setWeight(double w) { weight_ = w; }
     virtual void describe(GoalContext& context) const
