@@ -80,20 +80,32 @@ public:
 class PositionGoal : public LinkGoalBase
 {
     tf2::Vector3 position_;
-
+    double tolerance_;
 public:
     PositionGoal()
         : position_(0, 0, 0)
     {
+        tolerance_ = 0.;
     }
-    PositionGoal(const std::string& link_name, const tf2::Vector3& position, double weight = 1.0)
+    PositionGoal(const std::string& link_name, const tf2::Vector3& position, double weight = 1.0, double tolerance=0.0)
         : LinkGoalBase(link_name, weight)
         , position_(position)
+        , tolerance_(tolerance)
     {
     }
     inline const tf2::Vector3& getPosition() const { return position_; }
     inline void setPosition(const tf2::Vector3& position) { position_ = position; }
-    virtual double evaluate(const GoalContext& context) const { return context.getLinkFrame().getPosition().distance2(getPosition()); }
+    inline void setTolerance(const double& tolerance) { tolerance_ = tolerance; }
+    virtual double evaluate(const GoalContext& context) const { 
+        double cost = context.getLinkFrame().getPosition().distance2(getPosition());
+        if(tolerance_ >= std::sqrt(cost))
+        {
+            cost = 0.;
+        }
+        //ROS_INFO_STREAM("Cost for Position is " << cost);
+        return cost;
+        // return context.getLinkFrame().getPosition().distance2(getPosition()); 
+    }
 };
 
 class OrientationGoal : public LinkGoalBase
