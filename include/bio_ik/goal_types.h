@@ -392,6 +392,7 @@ public:
             double d = (context.getProblemVariablePosition(i) - joint_goals_[i])*joint_weights_[i];
             sum += d * d;
         }
+        //ROS_WARN_STREAM("Weighted cost for WeightedJointPositionsGoal is " << weight_*sum);
         return sum;
     }
 };
@@ -435,7 +436,7 @@ public:
       double d = context.getProblemVariablePosition(i) - context.getProblemVariableInitialGuess(i);
       sum += d * d;
     }
-    ROS_WARN_STREAM("Regularization goal cost is: " << sum );
+    //ROS_WARN_STREAM("Regularization goal cost is: " << sum );
     return sum;
   }
 };
@@ -458,7 +459,7 @@ public:
       double d = (context.getProblemVariablePosition(i) - context.getProblemVariableInitialGuess(i))*joint_weights_[i];
       sum += d * d;
     }
-    //ROS_WARN_STREAM("WeightedRegularization goal cost is: " << sum );
+    ROS_WARN_STREAM("WeightedRegularization goal cost is: " << sum );
     return sum;
   }
 };
@@ -561,7 +562,7 @@ public:
         // ROS_INFO_STREAM("getProblemVariablePosition = " << prob_var_pos[0] << " " << prob_var_pos[1] << " " << prob_var_pos[2] << " " << prob_var_pos[3] << " " << prob_var_pos[4] << " " << prob_var_pos[5]);
         // ROS_INFO_STREAM("InitialGuess              = " << initial_guess[0] << " " << initial_guess[1] << " " << initial_guess[2] << " " << initial_guess[3] << " " << initial_guess[4] << " " << initial_guess[5]);
         
-        // ROS_WARN_STREAM("Function cost goal cost is: " << cost << "\n");
+        //ROS_WARN_STREAM("Weighted function cost goal cost is: " << weight_*cost << "\n");
         return cost;
     }
 };
@@ -600,6 +601,7 @@ public:
             double d = temp_vector[i] - context.getVariablePosition(i);
             sum += d * d;
         }
+        //ROS_WARN_STREAM("Weighted function goal cost is: " << weight_*sum << "\n");
         return sum;
     }
 };
