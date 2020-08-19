@@ -445,10 +445,11 @@ class WeightedRegularizationGoal : public Goal
 {
 public:
   std::vector<double> joint_weights_;
-  WeightedRegularizationGoal(double weight = 1.0, std::vector<double> joint_weights={1.0,1.0,1.0,1.0,1.0,1.0})
+  WeightedRegularizationGoal(double weight = 1.0, std::vector<double> joint_weights={1.0,1.0,1.0,1.0,1.0,1.0}, bool secondary = true)
   {
     weight_ = weight;
     joint_weights_ = joint_weights;
+    secondary_ = secondary;
   }
 
   virtual double evaluate(const GoalContext &context) const
@@ -573,7 +574,7 @@ class JointFunctionGoal : public Goal
 
 public:
     JointFunctionGoal() {}
-    JointFunctionGoal(const std::vector<std::string>& variable_names, const std::function<void(std::vector<double>&)>& function, double weight = 1.0, bool secondary = false)
+    JointFunctionGoal(const std::vector<std::string>& variable_names, const std::function<void(std::vector<double>&)>& function, double weight = 1.0, bool secondary = true)
         : variable_names(variable_names)
         , function(function)
     {
